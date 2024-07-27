@@ -1,5 +1,4 @@
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use actix_web::web::Bytes;
 use log::error;
@@ -9,6 +8,69 @@ use crate::models::user::{Dispatcher, Session, User};
 use crate::utils::{generate_session_token, hash_password, verify_password};
 
 use super::dto::auth::LoginResponseDto;
+
+// 追加部分の修正
+use image::{GenericImageView, ImageError, imageops::FilterType, ImageOutputFormat};
+use std::io::{self, Cursor, Write}; // Writeトレイトをスコープに追加
+use std::os::unix::process::ExitStatusExt; // ExitStatusExtトレイトをインポート
+
+// 重複していた定義を削除
+/*
+#[derive(Debug)]
+enum AppError {
+    InternalServerError,
+}
+*/
+
+impl From<ImageError> for AppError {
+    fn from(_: ImageError) -> Self {
+        AppError::InternalServerError
+    }
+}
+
+impl From<io::Error> for AppError {
+    fn from(_: io::Error) -> Self {
+        AppError::InternalServerError
+    }
+}
+
+struct ImageOutput {
+    status: std::process::ExitStatus, // ExitStatusの完全修飾名を使用
+    stdout: Vec<u8>,
+    stderr: Vec<u8>,
+}
+
+fn resize_image(input_path: &Path) -> Result<ImageOutput, AppError> {
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+    let mut status = std::process::ExitStatus::from_raw(0); // 成功ステータス
+
+    match image::open(input_path) {
+        Ok(img) => {
+            // リサイズする
+            let resized_img = img.resize(500, 500, FilterType::Nearest);
+
+            // 画像をバイトストリームに変換
+            let mut cursor = Cursor::new(Vec::new());
+            match resized_img.write_to(&mut cursor, ImageOutputFormat::Png) {
+                Ok(_) => {
+                    stdout = cursor.into_inner();
+                    let _ = writeln!(stdout, "リサイズされた画像が正常に保存されました");
+                }
+                Err(e) => {
+                    status = std::process::ExitStatus::from_raw(1); // 失敗ステータス
+                    let _ = writeln!(stderr, "画像の保存に失敗しました: {:?}", e);
+                }
+            }
+        }
+        Err(e) => {
+            status = std::process::ExitStatus::from_raw(1); // 失敗ステータス
+            let _ = writeln!(stderr, "画像の読み込みに失敗しました: {:?}", e);
+        }
+    }
+
+    Ok(ImageOutput { status, stdout, stderr })
+}
 
 pub trait AuthRepository {
     async fn create_user(&self, username: &str, password: &str, role: &str)
@@ -167,6 +229,7 @@ impl<T: AuthRepository + std::fmt::Debug> AuthService<T> {
         let path: PathBuf =
             Path::new(&format!("images/user_profile/{}", profile_image_name)).to_path_buf();
 
+/*
         let output = Command::new("magick")
             .arg(&path)
             .arg("-resize")
@@ -177,6 +240,9 @@ impl<T: AuthRepository + std::fmt::Debug> AuthService<T> {
                 error!("画像リサイズのコマンド実行に失敗しました: {:?}", e);
                 AppError::InternalServerError
             })?;
+*/
+
+        let output = resize_image(&path)?;
 
         match output.status.success() {
             true => Ok(Bytes::from(output.stdout)),
