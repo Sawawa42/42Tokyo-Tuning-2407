@@ -71,6 +71,7 @@ services:
       - ./mysql/init:/docker-entrypoint-initdb.d
       - ./mysql/conf.d:/etc/mysql/conf.d
       - ./mysql/migration:/etc/mysql/migration
+      - ./logs/mysql:/var/log/mysql
     networks:
       - webapp-network
     healthcheck:
