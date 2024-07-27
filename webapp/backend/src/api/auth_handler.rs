@@ -4,6 +4,8 @@ use crate::errors::AppError;
 use crate::repositories::auth_repository::AuthRepositoryImpl;
 use actix_web::{web, HttpResponse};
 
+use log::error;
+
 pub async fn register_handler(
     service: web::Data<AuthService<AuthRepositoryImpl>>,
     req: web::Json<RegisterRequestDto>,
@@ -21,6 +23,7 @@ pub async fn login_handler(
     service: web::Data<AuthService<AuthRepositoryImpl>>,
     req: web::Json<LoginRequestDto>,
 ) -> Result<HttpResponse, AppError> {
+    error!("login_handler");
     match service.login_user(&req.username, &req.password).await {
         Ok(response) => Ok(HttpResponse::Ok().json(response)),
         Err(err) => Err(err),
