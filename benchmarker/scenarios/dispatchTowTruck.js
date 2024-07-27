@@ -5,6 +5,7 @@ import { parseHTML } from "k6/html";
 import { browser } from "k6/experimental/browser";
 import { createClientUrl } from "../utils.js";
 
+// 画像の読み込みが完了している数をカウントするカウンター
 const completedImageCount = new Counter("completed_load_image_count");
 
 // 画像の読み込みが完了している数をカウント
@@ -20,6 +21,7 @@ const countCompletedImage = async (page) => {
 };
 
 // 2から7までの範囲に基づいてTrendメトリクスを配列に格納
+// この12項目に関して、テストの結果が格納される
 const loginTime = [];
 const loginSuccessCounter = [];
 const getPendingOrdersTime = [];
@@ -87,9 +89,10 @@ export default async function dispatchTowTruck() {
         p.locator("h2").textContent() === "レッカー車配車アプリケーション",
     });
 
+    // ログイン成功時
     if (loginCheck) {
-      loginSuccessCounter[areaId - 2].add(1);
-      loginTime[areaId - 2].add(loginEndTime - loginStartTime);
+      loginSuccessCounter[areaId - 2].add(1); // loginSuccessCounterに1を追加
+      loginTime[areaId - 2].add(loginEndTime - loginStartTime); // loginTimeに時間を記録
     }
 
     // リクエスト一覧ページへ移動
@@ -105,11 +108,12 @@ export default async function dispatchTowTruck() {
       get_pending_orders_success: (p) =>
         p.locator("h2").textContent() === "リクエスト一覧",
     });
+    // リクエスト一覧ページへの移動成功時
     if (getPendingOrdersCheck) {
-      getPendingOrdersSucceedCounter[areaId - 2].add(1);
+      getPendingOrdersSucceedCounter[areaId - 2].add(1); // getPendingOrdersSucceedCounterに1を追加
       getPendingOrdersTime[areaId - 2].add(
         getPendingOrdersEndTime - getPendingOrdersStartTime
-      );
+      ); // getPendingOrdersTimeに時間を記録
     }
     sleep(3); // 画像の読み込みのため3秒間待機
     await countCompletedImage(page);
@@ -127,11 +131,12 @@ export default async function dispatchTowTruck() {
       get_detail_order_success: (p) =>
         p.locator("h2").textContent() === "リクエスト詳細",
     });
+    // リクエスト詳細画面への移動成功時
     if (getOrderDetailsCheck) {
-      getOrderDetailsSucceedCounter[areaId - 2].add(1);
+      getOrderDetailsSucceedCounter[areaId - 2].add(1); // getOrderDetailsSucceedCounterに1を追加
       getOrderDetailsTime[areaId - 2].add(
         getOrderDetailsEndTime - getOrderDetailsStartTime
-      );
+      ); // getOrderDetailsTimeに時間を記録
     }
 
     // 最寄りのレッカー車を取得
@@ -150,11 +155,12 @@ export default async function dispatchTowTruck() {
       get_nearest_tow_truck: (p) =>
         /^[0-9]+$/.test(p.locator("#tow-truck-id").textContent()),
     });
+    // 最寄りのレッカー車を取得成功時
     if (getNearestTowTruckCheck) {
-      getNearestTowTruckSucceedCounter[areaId - 2].add(1);
+      getNearestTowTruckSucceedCounter[areaId - 2].add(1); // getNearestTowTruckSucceedCounterに1を追加
       getNearestTowTruckTime[areaId - 2].add(
         getNearestTowTruckEndTime - getNearestTowTruckStartTime
-      );
+      ); // getNearestTowTruckTimeに時間を記録
     }
 
     // レッカー車を手配する操作
@@ -171,11 +177,12 @@ export default async function dispatchTowTruck() {
       order_dispatch_success: (p) =>
         p.locator("#order-status").textContent() === "dispatched",
     });
+    // レッカー車を手配成功時
     if (orderDispatchCheck) {
-      orderDispatchSucceedCounter[areaId - 2].add(1);
+      orderDispatchSucceedCounter[areaId - 2].add(1); // orderDispatchSucceedCounterに1を追加
       orderDispatchTime[areaId - 2].add(
         orderDispatchEndTime - orderDispatchStartTime
-      );
+      ); // orderDispatchTimeに時間を記録
     }
 
     // ログアウト操作
@@ -192,9 +199,10 @@ export default async function dispatchTowTruck() {
     const logoutCheck = check(page, {
       logout_success: (p) => p.locator("h2").textContent() === "ログイン",
     });
+    // ログアウト成功時
     if (logoutCheck) {
-      logoutSuccessCounter[areaId - 2].add(1);
-      logoutTime[areaId - 2].add(logoutEndTime - logoutStartTime);
+      logoutSuccessCounter[areaId - 2].add(1); // logoutSuccessCounterに1を追加
+      logoutTime[areaId - 2].add(logoutEndTime - logoutStartTime); // logoutTimeに時間を記録
     }
   } finally {
     page.close();
