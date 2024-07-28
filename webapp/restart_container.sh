@@ -23,6 +23,7 @@ else
     if [ -f ./../.da/.initLock ]; then
         docker compose down db --volumes --rmi local
     fi
+    docker compose down
 	docker compose -f docker-compose.local.yml up --build -d
 fi
 
