@@ -16,6 +16,11 @@ use repositories::map_repository::MapRepositoryImpl;
 use repositories::order_repository::OrderRepositoryImpl;
 use repositories::tow_truck_repository::TowTruckRepositoryImpl;
 
+// logをファイルに出力するための設定
+use log::{info};
+use simplelog::{WriteLogger, Config, LevelFilter};
+use std::fs::OpenOptions;
+
 mod api;
 mod domains;
 mod errors;
@@ -34,6 +39,21 @@ async fn main() -> std::io::Result<()> {
         port = 18080;
     }
 
+    // // OpenOptions を使ってファイルを追記モードで開く
+    // let log_file = OpenOptions::new()
+    //     .create(true)       // ファイルが存在しない場合は作成する
+    //     .append(true)       // 追記モードで開く
+    //     .open("app.log")    // ファイルを開く
+    //     .expect("Unable to open log file");
+
+    // // WriteLogger を使用してログ設定を行う
+    // WriteLogger::init(LevelFilter::Info, Config::default(), log_file)
+    //     .expect("Unable to initialize logger");
+
+    // // ログメッセージの出力
+    info!("\n----------");
+
+    // データベース接続プールを使用して各サービスのインスタンスを作成する
     let auth_service = web::Data::new(AuthService::new(AuthRepositoryImpl::new(pool.clone())));
     let auth_service_for_middleware =
         Arc::new(AuthService::new(AuthRepositoryImpl::new(pool.clone())));
