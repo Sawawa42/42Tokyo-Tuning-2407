@@ -86,7 +86,7 @@ impl MapRepository for MapRepositoryImpl {
     }
 
     async fn get_area_id_by_node_id(&self, node_id: i32) -> Result<i32, sqlx::Error> {
-        let area_id = sqlx::query_scalar("SELECT area_id FROM nodes WHERE id = ?")
+        let area_id = sqlx::query_scalar("SELECT area_id FROM nodes WHERE id = ?  LIMIT 1")
             .bind(node_id)
             .fetch_one(&self.pool)
             .await?;

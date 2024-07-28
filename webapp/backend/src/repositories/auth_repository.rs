@@ -16,7 +16,7 @@ impl AuthRepositoryImpl {
 
 impl AuthRepository for AuthRepositoryImpl {
     async fn find_user_by_id(&self, id: i32) -> Result<Option<User>, AppError> {
-        let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
+        let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?  LIMIT 1")
             .bind(id)
             .fetch_optional(&self.pool)
             .await?;
@@ -25,7 +25,7 @@ impl AuthRepository for AuthRepositoryImpl {
     }
 
     async fn find_user_by_username(&self, username: &str) -> Result<Option<User>, AppError> {
-        let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ?")
+        let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ?  LIMIT 1")
             .bind(username)
             .fetch_optional(&self.pool)
             .await?;
@@ -37,7 +37,7 @@ impl AuthRepository for AuthRepositoryImpl {
         &self,
         user_id: i32,
     ) -> Result<Option<String>, AppError> {
-        let profile_image_name = sqlx::query_scalar("SELECT profile_image FROM users WHERE id = ?")
+        let profile_image_name = sqlx::query_scalar("SELECT profile_image FROM users WHERE id = ?  LIMIT 1")
             .bind(user_id)
             .fetch_optional(&self.pool)
             .await?;
@@ -47,7 +47,7 @@ impl AuthRepository for AuthRepositoryImpl {
 
     async fn authenticate_user(&self, username: &str, password: &str) -> Result<User, AppError> {
         let user =
-            sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ? AND password = ?")
+            sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ? AND password = ?  LIMIT 1")
                 .bind(username)
                 .bind(password)
                 .fetch_one(&self.pool)
@@ -83,7 +83,7 @@ impl AuthRepository for AuthRepositoryImpl {
     }
 
     async fn delete_session(&self, session_token: &str) -> Result<(), AppError> {
-        sqlx::query("DELETE FROM sessions WHERE session_token = ?")
+        sqlx::query("DELETE FROM sessions WHERE session_token = ? LIMIT 1")
             .bind(session_token)
             .execute(&self.pool)
             .await?;
@@ -96,7 +96,7 @@ impl AuthRepository for AuthRepositoryImpl {
         session_token: &str,
     ) -> Result<Session, AppError> {
         let session =
-            sqlx::query_as::<_, Session>("SELECT * FROM sessions WHERE session_token = ?")
+            sqlx::query_as::<_, Session>("SELECT * FROM sessions WHERE session_token = ? LIMIT 1")
                 .bind(session_token)
                 .fetch_one(&self.pool)
                 .await?;
@@ -105,7 +105,7 @@ impl AuthRepository for AuthRepositoryImpl {
     }
 
     async fn find_dispatcher_by_id(&self, id: i32) -> Result<Option<Dispatcher>, AppError> {
-        let dispatcher = sqlx::query_as::<_, Dispatcher>("SELECT * FROM dispatchers WHERE id = ?")
+        let dispatcher = sqlx::query_as::<_, Dispatcher>("SELECT * FROM dispatchers WHERE id = ?  LIMIT 1")
             .bind(id)
             .fetch_optional(&self.pool)
             .await?;
@@ -118,7 +118,7 @@ impl AuthRepository for AuthRepositoryImpl {
         user_id: i32,
     ) -> Result<Option<Dispatcher>, AppError> {
         let dispatcher =
-            sqlx::query_as::<_, Dispatcher>("SELECT * FROM dispatchers WHERE user_id = ?")
+            sqlx::query_as::<_, Dispatcher>("SELECT * FROM dispatchers WHERE user_id = ?  LIMIT 1")
                 .bind(user_id)
                 .fetch_optional(&self.pool)
                 .await?;

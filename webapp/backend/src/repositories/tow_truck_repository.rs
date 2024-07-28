@@ -116,7 +116,7 @@ impl TowTruckRepository for TowTruckRepositoryImpl {
             WHERE
                 tt.id = ?
             AND
-                l.timestamp = (SELECT MAX(timestamp) FROM locations WHERE tow_truck_id = tt.id)",
+                l.timestamp = (SELECT MAX(timestamp) FROM locations WHERE tow_truck_id = tt.id) LIMIT 1",
         )
         .bind(id)
         .fetch_optional(&self.pool)
